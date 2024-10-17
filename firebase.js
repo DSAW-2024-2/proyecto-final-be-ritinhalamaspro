@@ -4,7 +4,7 @@ var serviceAccount = require("./serviceAccountKey.json");
 try {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://web-project-c80a8-default-rtdb.firebaseio.com/"
+    databaseURL: process.env.FIREBASE_DATABASE_URL
   });
 } catch (error) {
   console.error('Firebase initialization error:', error);
