@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = require('../firebase');
 const { body, validationResult } = require('express-validator');
 
@@ -49,7 +50,7 @@ router.post(
       // Hashear la contraseña
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Crear nuevo usuario
+      // Crear el nuevo usuario
       const newUser = {
         name,
         surName,
@@ -60,7 +61,21 @@ router.post(
       };
 
       // Guardar el usuario en Firebase
-      await usersRef.push(newUser);
+      const newUserRef = await usersRef.push(newUser);
+
+      // Crear JWT con el ID del usuario y universityID
+      const token = jwt.sign(
+        { id: newUserRef.key, universityID },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Guardar el JWT en una cookie segura y HttpOnly
+      res.cookie('token', token, {
+        httpOnly: true,
+        maxAge: 3600000, // 1 hora
+        secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
+      });
 
       res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
