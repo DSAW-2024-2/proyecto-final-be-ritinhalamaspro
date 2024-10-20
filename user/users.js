@@ -70,16 +70,29 @@ router.put(
   }
 );
 
-// Eliminar usuario logueado
+// Eliminar usuario logueado y sus vehículos asociados
 router.delete('/me', authMiddleware, async (req, res) => {
   try {
-    const userRef = db.ref(`users/${req.user.id}`);
+    const userId = req.user.id;
+
+    // Eliminar los vehículos asociados al usuario
+    const carsRef = db.ref('cars').orderByChild('universityID').equalTo(req.user.universityID);
+    const carsSnapshot = await carsRef.once('value');
+
+    if (carsSnapshot.exists()) {
+      const deleteCarPromises = [];
+      carsSnapshot.forEach((child) => deleteCarPromises.push(db.ref(`cars/${child.key}`).remove()));
+      await Promise.all(deleteCarPromises);
+    }
+
+    // Eliminar el usuario
+    const userRef = db.ref(`users/${userId}`);
     await userRef.remove();
 
     res.clearCookie('token'); // Eliminar la cookie del token
-    res.status(200).json({ message: 'User deleted successfully' });
+    res.status(200).json({ message: 'User and associated cars deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting user', error });
+    res.status(500).json({ message: 'Error deleting user and cars', error });
   }
 });
 

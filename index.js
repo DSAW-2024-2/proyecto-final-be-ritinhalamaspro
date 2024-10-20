@@ -15,7 +15,9 @@ app.use(cookieParser()); // Usar cookie-parser
 app.use('/users', require('./user/users'));
 app.use('/register', require('./user/register'));
 app.use('/login', require('./user/login'));
-app.use('/logout', require('./user/logout')); // Nueva ruta de logout
+app.use('/logout', require('./user/logout'));
+app.use('/register_car', require('./car/register_car'))
+app.use('/cars', require('./car/cars.js'))
 
 const PORT = process.env.PORT || 3000;
 

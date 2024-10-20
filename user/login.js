@@ -6,6 +6,7 @@ const db = require('../firebase');
 const router = express.Router();
 
 // Login usuario
+// Login usuario
 router.post('/', async (req, res) => {
   const { email, password } = req.body;
 
@@ -25,10 +26,20 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: userKey }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Asegúrate de incluir el universityID en el token
+    const token = jwt.sign(
+      { id: userKey, universityID: userData.universityID }, // universityID aquí
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     // Guardar el token en una cookie segura y HttpOnly
-    res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hora
+    res.cookie('token', token, {
+      httpOnly: true,
+      maxAge: 3600000, // 1 hora
+      secure: process.env.NODE_ENV === 'production',
+    });
+
     res.status(200).json({ message: 'Login successful' });
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error });
