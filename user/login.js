@@ -1,12 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../firebase');
+const { db, storage } = require('../firebase');
 
 const router = express.Router();
 
-// Login usuario
-// Login usuario
 router.post('/', async (req, res) => {
   const { email, password } = req.body;
 
@@ -26,19 +24,19 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Asegúrate de incluir el universityID en el token
     const token = jwt.sign(
-      { id: userKey, universityID: userData.universityID }, // universityID aquí
+      { id: userKey, universityID: userData.universityID },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Guardar el token en una cookie segura y HttpOnly
     res.cookie('token', token, {
       httpOnly: true,
       maxAge: 3600000, // 1 hora
       secure: process.env.NODE_ENV === 'production',
     });
+
+    console.log('Cookie token:', token);
 
     res.status(200).json({ message: 'Login successful' });
   } catch (error) {

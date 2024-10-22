@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware para validar el token desde la cookie
 function authenticateToken(req, res, next) {
-  const token = req.cookies.token; // Leer token desde la cookie
+  const token = req.cookies.token; 
 
   if (!token) {
     return res.status(403).json({ message: 'No token provided' });
@@ -12,7 +11,7 @@ function authenticateToken(req, res, next) {
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
     }
-    req.user = user; // Guardar usuario en la request
+    req.user = user; 
     next();
   });
 }
