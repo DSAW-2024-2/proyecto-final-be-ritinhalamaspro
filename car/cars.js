@@ -1,8 +1,24 @@
 const express = require('express');
 const { db, storage } = require('../firebase');
-const authMiddleware = require('../middlewares/authMiddleware');
+const jwt = require('jsonwebtoken');  // Necesario para decodificar el token
 
 const router = express.Router();
+
+// Middleware para autenticar el JWT y extraer el universityID
+const authMiddleware = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ message: 'Not authorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { universityID: decoded.universityID };  // Extrae el universityID
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
 
 router.get('/me', authMiddleware, async (req, res) => {
   try {

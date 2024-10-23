@@ -62,13 +62,7 @@ router.post(
         { expiresIn: '1h' }
       );
 
-      res.cookie('token', token, {
-        httpOnly: true,
-        maxAge: 3600000,
-        secure: process.env.NODE_ENV === 'production',
-      });
-
-      res.status(201).json({ message: 'User registered successfully', userId: newUserRef.key });
+      res.status(201).json({ message: 'User registered successfully', token });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error registering user', error });

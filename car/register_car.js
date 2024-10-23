@@ -20,7 +20,7 @@ router.post(
   upload.fields([
     { name: 'soatPhoto', maxCount: 1 },
     { name: 'carPhoto', maxCount: 1 }
-  ]), 
+  ]),
   [
     body('plate').notEmpty().withMessage('Plate is required'),
     body('capacity').isNumeric().withMessage('Capacity must be numeric'),
@@ -36,7 +36,7 @@ router.post(
     }
 
     try {
-      const token = req.cookies.token;
+      const token = req.headers.authorization?.split(' ')[1]; // Obtiene el token desde el header
       if (!token) return res.status(403).json({ message: 'Not authorized' });
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);

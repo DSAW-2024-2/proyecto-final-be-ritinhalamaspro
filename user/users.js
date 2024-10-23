@@ -16,6 +16,7 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
+// Obtener datos del usuario logueado
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userRef = db.ref(`users/${req.user.id}`);
@@ -32,6 +33,7 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+// Actualizar datos del usuario
 router.put(
   '/me',
   authMiddleware,
@@ -83,6 +85,7 @@ router.put(
   }
 );
 
+// Eliminar usuario
 router.delete('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -130,7 +133,6 @@ router.delete('/me', authMiddleware, async (req, res) => {
 
     await userRef.remove();
 
-    res.clearCookie('token'); 
     res.status(200).json({ message: 'User and associated data deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);

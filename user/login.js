@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { db, storage } = require('../firebase');
+const { db } = require('../firebase');
 
 const router = express.Router();
 
@@ -30,15 +30,7 @@ router.post('/', async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      maxAge: 3600000, // 1 hora
-      secure: process.env.NODE_ENV === 'production',
-    });
-
-    console.log('Cookie token:', token);
-
-    res.status(200).json({ message: 'Login successful' });
+    res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error });
   }
