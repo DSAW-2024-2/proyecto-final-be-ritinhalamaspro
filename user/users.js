@@ -16,7 +16,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Obtener datos del usuario logueado
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userRef = db.ref(`users/${req.user.id}`);
@@ -27,11 +26,15 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 
     const userData = snapshot.val();
+    
+    delete userData.password;
+
     res.status(200).json(userData); 
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user data', error });
   }
 });
+
 
 // Actualizar datos del usuario
 router.put(

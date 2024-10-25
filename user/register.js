@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { db, storage } = require('../firebase'); 
+const { db, storage } = require('../firebase');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -24,10 +24,15 @@ router.post(
 
     try {
       const usersRef = db.ref('users');
-      const userSnapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
 
-      if (userSnapshot.exists()) {
-        return res.status(400).json({ message: 'User already exists' });
+      const emailSnapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
+      if (emailSnapshot.exists()) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+
+      const universityIDSnapshot = await usersRef.orderByChild('universityID').equalTo(universityID).once('value');
+      if (universityIDSnapshot.exists()) {
+        return res.status(400).json({ message: 'University ID already exists' });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
