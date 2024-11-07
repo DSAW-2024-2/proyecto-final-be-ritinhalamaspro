@@ -4,9 +4,11 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const { db, storage } = require('../firebase');
+const { getStorage } = require('firebase-admin/storage'); 
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+const bucket = getStorage().bucket(); 
 
 router.post(
   '/',
@@ -39,14 +41,17 @@ router.post(
       let photoURL = null;
 
       if (req.file) {
-        const blob = storage.file(`users/${universityID}-${Date.now()}`);
-        const blobStream = blob.createWriteStream({
+        const photoFilePath = `users/${universityID}-${Date.now()}`;
+        const photoBlob = bucket.file(photoFilePath);
+
+        await photoBlob.save(req.file.buffer, {
           metadata: { contentType: req.file.mimetype },
         });
 
-        blobStream.end(req.file.buffer);
-
-        photoURL = `https://storage.googleapis.com/${storage.name}/${blob.name}`;
+        [photoURL] = await photoBlob.getSignedUrl({
+          action: 'read',
+          expires: '03-01-2500', 
+        });
       }
 
       const newUser = {

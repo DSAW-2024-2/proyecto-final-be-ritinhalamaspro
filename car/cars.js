@@ -48,38 +48,47 @@ router.delete('/me', authMiddleware, async (req, res) => {
     snapshot.forEach((child) => {
       const carData = child.val();
 
+      // Eliminar foto SOAT si existe
       if (carData.soatPhotoURL) {
-        const soatFileName = carData.soatPhotoURL.split('/').pop();
-        const soatFile = storage.file(`cars/soat/${soatFileName}`);
-        
-        deletePromises.push(
-          soatFile.delete().catch((error) => {
-            console.error(`Error deleting SOAT photo: ${error}`);
-            if (error.code === 404) {
-              console.log(`SOAT photo not found: ${soatFileName}, skipping deletion.`);
-            } else {
-              throw error;
-            }
-          })
-        );
+        // Extraemos la ruta del archivo desde la URL completa
+        const soatFilePath = carData.soatPhotoURL.split('storage.googleapis.com/')[1]?.split('?')[0];
+        if (soatFilePath) {
+          console.log("SOAT file path:", soatFilePath);  // Para depuración
+          const soatFile = storage.file(soatFilePath);  // Usamos solo la ruta relativa
+          deletePromises.push(
+            soatFile.delete().catch((error) => {
+              console.error(`Error deleting SOAT photo: ${error}`);
+              if (error.code === 404) {
+                console.log(`SOAT photo not found, skipping deletion.`);
+              } else {
+                throw error;
+              }
+            })
+          );
+        }
       }
 
+      // Eliminar foto de carro si existe
       if (carData.carPhotoURL) {
-        const carFileName = carData.carPhotoURL.split('/').pop();
-        const carFile = storage.file(`cars/car/${carFileName}`);
-        
-        deletePromises.push(
-          carFile.delete().catch((error) => {
-            console.error(`Error deleting car photo: ${error}`);
-            if (error.code === 404) {
-              console.log(`Car photo not found: ${carFileName}, skipping deletion.`);
-            } else {
-              throw error;
-            }
-          })
-        );
+        // Extraemos la ruta del archivo desde la URL completa
+        const carFilePath = carData.carPhotoURL.split('storage.googleapis.com/')[1]?.split('?')[0];
+        if (carFilePath) {
+          console.log("Car file path:", carFilePath);  // Para depuración
+          const carFile = storage.file(carFilePath);  // Usamos solo la ruta relativa
+          deletePromises.push(
+            carFile.delete().catch((error) => {
+              console.error(`Error deleting car photo: ${error}`);
+              if (error.code === 404) {
+                console.log(`Car photo not found, skipping deletion.`);
+              } else {
+                throw error;
+              }
+            })
+          );
+        }
       }
 
+      // Eliminar el dato del carro en la base de datos
       deletePromises.push(db.ref(`cars/${child.key}`).remove());
     });
 

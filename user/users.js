@@ -64,7 +64,7 @@ router.put(
 
       if (req.file) {
         if (userData.photoURL) {
-          const oldFileName = userData.photoURL.split('/').pop();
+          const oldFileName = userData.photoURL.split('/').pop().split('?')[0];
           const oldFile = storage.file(`users/${oldFileName}`);
           await oldFile.delete(); 
         }
@@ -76,7 +76,13 @@ router.put(
 
         newBlobStream.end(req.file.buffer);
 
-        updatedData.photoURL = `https://storage.googleapis.com/${storage.name}/${newBlob.name}`;
+        // Obtener la URL firmada con parámetros de seguridad
+        const [url] = await newBlob.getSignedUrl({
+          action: 'read',
+          expires: '03-09-2491', // Fecha de expiración a largo plazo
+        });
+
+        updatedData.photoURL = url;  // Usar la URL firmada
       }
 
       await userRef.update(updatedData);
@@ -100,7 +106,7 @@ router.delete('/me', authMiddleware, async (req, res) => {
     if (userSnapshot.exists()) {
       userData = userSnapshot.val();
       if (userData.photoURL) {
-        const fileName = userData.photoURL.split('/').pop();
+        const fileName = userData.photoURL.split('/').pop().split('?')[0];  // Extraemos el nombre del archivo sin parámetros
         const file = storage.file(`users/${fileName}`);
 
         await file.delete();
@@ -115,7 +121,7 @@ router.delete('/me', authMiddleware, async (req, res) => {
         const carData = child.val();
         
         if (carData.soatPhotoURL) {
-          const soatFileName = carData.soatPhotoURL.split('/').pop();
+          const soatFileName = carData.soatPhotoURL.split('/').pop().split('?')[0];  // Extraemos el nombre del archivo sin parámetros
           const soatFile = storage.file(`cars/soat/${soatFileName}`);
           await soatFile.delete().catch(error => {
             console.error(`Error deleting SOAT photo: ${error}`);
@@ -123,7 +129,7 @@ router.delete('/me', authMiddleware, async (req, res) => {
         }
 
         if (carData.carPhotoURL) {
-          const carFileName = carData.carPhotoURL.split('/').pop();
+          const carFileName = carData.carPhotoURL.split('/').pop().split('?')[0];  // Extraemos el nombre del archivo sin parámetros
           const carFile = storage.file(`cars/car/${carFileName}`);
           await carFile.delete().catch(error => {
             console.error(`Error deleting car photo: ${error}`);

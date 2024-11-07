@@ -3,9 +3,11 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const { db, storage } = require('../firebase');
+const { getStorage } = require('firebase-admin/storage'); 
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+const bucket = getStorage().bucket(); 
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -36,7 +38,7 @@ router.post(
     }
 
     try {
-      const token = req.headers.authorization?.split(' ')[1]; // Obtiene el token desde el header
+      const token = req.headers.authorization?.split(' ')[1];
       if (!token) return res.status(403).json({ message: 'Not authorized' });
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -50,21 +52,27 @@ router.post(
         return res.status(400).json({ message: 'User can only have one car' });
       }
 
-      const soatBlob = storage.file(`cars/soat/${universityID}-soat-${Date.now()}`);
-      const carBlob = storage.file(`cars/car/${universityID}-car-${Date.now()}`);
+      const soatFilePath = `cars/soat/${universityID}-soat-${Date.now()}`;
+      const carFilePath = `cars/car/${universityID}-car-${Date.now()}`;
 
-      const soatStream = soatBlob.createWriteStream({
+      const soatBlob = bucket.file(soatFilePath);
+      const carBlob = bucket.file(carFilePath);
+
+      await soatBlob.save(req.files.soatPhoto[0].buffer, {
         metadata: { contentType: req.files.soatPhoto[0].mimetype },
       });
-      const carStream = carBlob.createWriteStream({
+      await carBlob.save(req.files.carPhoto[0].buffer, {
         metadata: { contentType: req.files.carPhoto[0].mimetype },
       });
 
-      soatStream.end(req.files.soatPhoto[0].buffer);
-      carStream.end(req.files.carPhoto[0].buffer);
-
-      const soatPhotoURL = `https://storage.googleapis.com/${storage.name}/${soatBlob.name}`;
-      const carPhotoURL = `https://storage.googleapis.com/${storage.name}/${carBlob.name}`;
+      const [soatPhotoURL] = await soatBlob.getSignedUrl({
+        action: 'read',
+        expires: '03-01-2500' 
+      });
+      const [carPhotoURL] = await carBlob.getSignedUrl({
+        action: 'read',
+        expires: '03-01-2500'
+      });
 
       const newCar = {
         plate,
@@ -77,7 +85,7 @@ router.post(
       };
 
       await db.ref('cars').push(newCar);
-      res.status(201).json({ message: 'Car registered successfully' });
+      res.status(201).json({ message: 'Car registered successfully', newCar });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error registering car', error });
