@@ -51,10 +51,10 @@ router.delete('/me', authMiddleware, async (req, res) => {
       // Eliminar foto SOAT si existe
       if (carData.soatPhotoURL) {
         // Extraemos la ruta del archivo desde la URL completa
-        const soatFilePath = carData.soatPhotoURL.split('storage.googleapis.com/')[1]?.split('?')[0];
+        const soatFilePath = carData.soatPhotoURL.split('/').pop().split('?')[0];
         if (soatFilePath) {
           console.log("SOAT file path:", soatFilePath);  // Para depuración
-          const soatFile = storage.file(soatFilePath);  // Usamos solo la ruta relativa
+          const soatFile = storage.file(`cars/soat/${soatFilePath}`);  // Usamos solo la ruta relativa
           deletePromises.push(
             soatFile.delete().catch((error) => {
               console.error(`Error deleting SOAT photo: ${error}`);
@@ -71,10 +71,10 @@ router.delete('/me', authMiddleware, async (req, res) => {
       // Eliminar foto de carro si existe
       if (carData.carPhotoURL) {
         // Extraemos la ruta del archivo desde la URL completa
-        const carFilePath = carData.carPhotoURL.split('storage.googleapis.com/')[1]?.split('?')[0];
+        const carFilePath = carData.carPhotoURL.split('/').pop().split('?')[0];
         if (carFilePath) {
           console.log("Car file path:", carFilePath);  // Para depuración
-          const carFile = storage.file(carFilePath);  // Usamos solo la ruta relativa
+          const carFile = storage.file(`cars/car/${carFilePath}`);  // Usamos solo la ruta relativa
           deletePromises.push(
             carFile.delete().catch((error) => {
               console.error(`Error deleting car photo: ${error}`);

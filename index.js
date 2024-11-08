@@ -15,6 +15,7 @@ app.use('/register', require('./user/register'));
 app.use('/login', require('./user/login'));
 app.use('/register_car', require('./car/register_car'))
 app.use('/cars', require('./car/cars.js'))
+app.use('/trips', require('./trip/trips.js'))
 
 const PORT = process.env.PORT || 3000;
 
