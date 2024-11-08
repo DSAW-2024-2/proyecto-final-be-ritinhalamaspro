@@ -36,7 +36,6 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 
-// Actualizar datos del usuario
 router.put(
   '/me',
   authMiddleware,
@@ -76,13 +75,12 @@ router.put(
 
         newBlobStream.end(req.file.buffer);
 
-        // Obtener la URL firmada con parámetros de seguridad
         const [url] = await newBlob.getSignedUrl({
           action: 'read',
-          expires: '03-09-2491', // Fecha de expiración a largo plazo
+          expires: '03-09-2491', 
         });
 
-        updatedData.photoURL = url;  // Usar la URL firmada
+        updatedData.photoURL = url;  
       }
 
       await userRef.update(updatedData);
@@ -94,12 +92,10 @@ router.put(
   }
 );
 
-// Eliminar usuario
 router.delete('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Obtener datos del usuario
     const userRef = db.ref(`users/${userId}`);
     const userSnapshot = await userRef.once('value');
     let userData;
@@ -107,7 +103,6 @@ router.delete('/me', authMiddleware, async (req, res) => {
     if (userSnapshot.exists()) {
       userData = userSnapshot.val();
 
-      // Eliminar foto de usuario si existe
       if (userData.photoURL) {
         const fileName = userData.photoURL.split('/').pop().split('?')[0];
         const file = storage.file(`users/${fileName}`);
@@ -117,7 +112,6 @@ router.delete('/me', authMiddleware, async (req, res) => {
       }
     }
 
-    // Buscar y eliminar fotos de carros asociados
     const carRef = db.ref('cars').orderByChild('universityID').equalTo(userData.universityID);
     const carSnapshot = await carRef.once('value');
 
@@ -126,7 +120,6 @@ router.delete('/me', authMiddleware, async (req, res) => {
       carSnapshot.forEach((child) => {
         const carData = child.val();
 
-        // Eliminar foto SOAT si existe
         if (carData.soatPhotoURL) {
           const soatFileName = carData.soatPhotoURL.split('/').pop().split('?')[0];
           const soatFile = storage.file(`cars/soat/${soatFileName}`);
@@ -135,7 +128,6 @@ router.delete('/me', authMiddleware, async (req, res) => {
           }));
         }
 
-        // Eliminar foto del carro si existe
         if (carData.carPhotoURL) {
           const carFileName = carData.carPhotoURL.split('/').pop().split('?')[0];
           const carFile = storage.file(`cars/car/${carFileName}`);
@@ -144,15 +136,12 @@ router.delete('/me', authMiddleware, async (req, res) => {
           }));
         }
 
-        // Eliminar carro de la base de datos
         deletePromises.push(db.ref(`cars/${child.key}`).remove());
       });
     }
 
-    // Esperar a que todas las promesas se resuelvan
     await Promise.all(deletePromises);
 
-    // Eliminar usuario de la base de datos
     await userRef.remove();
 
     res.status(200).json({ message: 'User and associated data deleted successfully' });
