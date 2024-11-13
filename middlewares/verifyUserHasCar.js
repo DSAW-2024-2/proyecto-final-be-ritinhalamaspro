@@ -1,5 +1,4 @@
 const { db } = require('../firebase'); 
-const authMiddleware = require('./authMiddleware');
 
 const verifyUserHasCar = async (req, res, next) => {
   const userId = req.user.id;
@@ -13,6 +12,7 @@ const verifyUserHasCar = async (req, res, next) => {
 
     const carData = Object.values(carSnapshot.val())[0]; 
     req.carCapacity = carData.capacity;
+    req.carPhoto = carData.carPhotoURL
 
     next();
   } catch (error) {
