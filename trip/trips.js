@@ -265,14 +265,66 @@ router.get('/my-reservations', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'No trips found' });
     }
 
-    const reservedTrips = Object.keys(tripsData)
-      .filter((tripId) =>
-        tripsData[tripId].reservations?.some((reservation) => reservation.userId === userId)
-      )
-      .map((tripId) => ({
-        tripId,
-        ...tripsData[tripId],
-      }));
+    const reservedTrips = [];
+
+    Object.keys(tripsData).forEach((tripId) => {
+      const trip = tripsData[tripId];
+
+      // Buscar en pendingRequests
+      trip.pendingRequests?.forEach((request) => {
+        if (request.userId === userId) {
+          reservedTrips.push({
+            tripId,
+            status: 'pending',
+            startPoint: trip.startPoint,
+            endPoint: trip.endPoint,
+            departureTime: trip.departureTime,
+            date: trip.date,
+            price: trip.price,
+            driverId: trip.userId,
+            carPhoto: trip.carPhoto,
+          });
+        }
+      });
+
+      // Buscar en acceptedRequests
+      trip.acceptedRequests?.forEach((request) => {
+        if (request.userId === userId) {
+          reservedTrips.push({
+            tripId,
+            status: 'accepted',
+            startPoint: trip.startPoint,
+            endPoint: trip.endPoint,
+            departureTime: trip.departureTime,
+            date: trip.date,
+            price: trip.price,
+            driverId: trip.userId,
+            carPhoto: trip.carPhoto,
+          });
+        }
+      });
+
+      // Buscar en rejectedRequests
+      trip.rejectedRequests?.forEach((request) => {
+        if (request.userId === userId) {
+          reservedTrips.push({
+            tripId,
+            status: 'rejected',
+            startPoint: trip.startPoint,
+            endPoint: trip.endPoint,
+            departureTime: trip.departureTime,
+            date: trip.date,
+            price: trip.price,
+            driverId: trip.userId,
+            carPhoto: trip.carPhoto,
+          });
+        }
+      });
+    });
+
+    if (reservedTrips.length === 0) {
+      return res.status(404).json({ message: 'No reservations found' });
+    }
 
     res.status(200).json({ reservedTrips });
   } catch (error) {
