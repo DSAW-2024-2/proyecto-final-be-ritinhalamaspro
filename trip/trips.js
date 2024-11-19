@@ -174,6 +174,10 @@ router.put('/manage-reservation', authMiddleware, async (req, res) => {
     let updateFields = { pendingRequests };
 
     if (action === 'accept') {
+      if (tripData.availability <= 0) {
+        return res.status(400).json({ message: 'No availability to accept the reservation' });
+      }
+
       updateFields = {
         ...updateFields,
         acceptedRequests: [...(tripData.acceptedRequests || []), request],
