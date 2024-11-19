@@ -199,7 +199,7 @@ router.put('/manage-reservation', authMiddleware, async (req, res) => {
 
 router.delete('/cancel', authMiddleware, async (req, res) => {
   const { tripId } = req.body;
-  const userId = req.user.id;
+  const userId = req.user.universityID;  
 
   try {
     const tripRef = db.ref(`trips/${tripId}`);
@@ -210,20 +210,30 @@ router.delete('/cancel', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Trip not found' });
     }
 
-    if (!tripData.reservations || !tripData.reservations.includes(userId)) {
-      return res.status(400).json({ message: 'You have not reserved this trip' });
+    const pendingRequests = tripData.pendingRequests || [];
+    const acceptedRequests = tripData.acceptedRequests || [];
+
+    const removeUserReservations = (requests) => {
+      return requests.filter((request) => request.userId !== userId);
+    };
+
+    const newPendingRequests = removeUserReservations(pendingRequests);
+    const newAcceptedRequests = removeUserReservations(acceptedRequests);
+
+    if (newPendingRequests.length === pendingRequests.length && newAcceptedRequests.length === acceptedRequests.length) {
+      return res.status(400).json({ message: 'You have no reservations for this trip' });
     }
 
-    const updatedReservations = tripData.reservations.filter((id) => id !== userId);
     await tripRef.update({
-      capacity: tripData.capacity + 1,
-      reservations: updatedReservations,
+      pendingRequests: newPendingRequests,
+      acceptedRequests: newAcceptedRequests,
+      reservationsCount: tripData.reservationsCount - (pendingRequests.length - newPendingRequests.length + acceptedRequests.length - newAcceptedRequests.length), // Ajustar el contador
     });
 
-    res.status(200).json({ message: 'Reservation cancelled successfully' });
+    res.status(200).json({ message: 'All reservations cancelled successfully' });
+
   } catch (error) {
-    console.error('Error cancelling reservation:', error);
-    res.status(500).json({ message: 'Error cancelling reservation', error });
+    res.status(500).json({ message: 'Error cancelling reservations', error });
   }
 });
 
