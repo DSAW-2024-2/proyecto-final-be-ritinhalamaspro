@@ -69,7 +69,7 @@ router.post(
       const token = jwt.sign(
         { id: newUserRef.key, universityID },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '3h' }
       );
 
       res.status(201).json({ message: 'User registered successfully', token });
