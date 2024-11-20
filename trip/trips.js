@@ -298,6 +298,7 @@ router.get('/my-reservations', authMiddleware, async (req, res) => {
             driverId: trip.userId,
             carPhoto: trip.carPhoto,
             state: trip.state,
+            sector: trip.sector
           });
         }
       });
@@ -335,7 +336,8 @@ router.get('/my-reservations', authMiddleware, async (req, res) => {
             price: trip.price,
             driverId: trip.userId,
             carPhoto: trip.carPhoto,
-            state: trip.state
+            state: trip.state,
+            sector: trip.sector
           });
         }
       });
