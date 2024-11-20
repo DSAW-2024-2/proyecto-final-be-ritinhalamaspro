@@ -316,7 +316,8 @@ router.get('/my-reservations', authMiddleware, async (req, res) => {
             driverId: trip.userId,
             carPhoto: trip.carPhoto,
             state: trip.state,
-            acceptedRequests: trip.acceptedRequests
+            acceptedRequests: trip.acceptedRequests,
+            sector: trip.sector
           });
         }
       });
