@@ -26,6 +26,8 @@ router.post(
 
     const { startPoint, endPoint, sector, departureTime, price, date, capacity } = req.body;
     const userId = req.user.universityID;
+    const name = req.user.name
+    const surName = req.user.surName
 
     try {
       if (capacity > req.carCapacity) {
@@ -33,6 +35,8 @@ router.post(
       }
 
       const newTrip = {
+        name,
+        surName,
         startPoint,
         endPoint,
         sector,

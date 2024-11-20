@@ -67,7 +67,7 @@ router.post(
       const newUserRef = await usersRef.push(newUser);
 
       const token = jwt.sign(
-        { id: newUserRef.key, universityID },
+        { id: newUserRef.key, universityID, name, surName },
         process.env.JWT_SECRET,
         { expiresIn: '3h' }
       );
